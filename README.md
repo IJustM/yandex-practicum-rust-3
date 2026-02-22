@@ -2,7 +2,11 @@
 
 Егоров Дмитрий
 
-## Настройка
+## Настройка проекта
+
+Установка protobuf `brew install protobuf`
+
+## Настройка pre-commit
 
 Включение pre-commit `pre-commit install`
 
