@@ -7,5 +7,6 @@ pub struct User {
     pub email: String,
     pub password_hash: String,
     pub username: String,
+    #[allow(dead_code)]
     pub created_at: Option<OffsetDateTime>,
 }

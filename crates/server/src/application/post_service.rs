@@ -6,6 +6,7 @@ pub trait PostRepository {
     async fn create(&self, post: Post) -> anyhow::Result<(), AppError>;
     async fn get_by_id(&self, id: &Uuid) -> anyhow::Result<Post, AppError>;
     async fn update(&self, post: Post) -> anyhow::Result<(), AppError>;
+    async fn remove(&self, id: &Uuid) -> anyhow::Result<(), AppError>;
 }
 
 pub struct PostService<R: PostRepository> {
@@ -62,11 +63,7 @@ impl<R: PostRepository> PostService<R> {
     ) -> anyhow::Result<Post, AppError> {
         tracing::info!("update post {}", id);
 
-        let mut post = self.get_by_id(id).await?;
-
-        if post.author_id != *user_id {
-            return Err(AppError::Internal("you are not author".to_string()));
-        }
+        let mut post = self.verify_post_author(id, user_id).await?;
 
         let id = post.id;
         post.title = title.to_string();
@@ -75,6 +72,32 @@ impl<R: PostRepository> PostService<R> {
         self.repo.update(post).await?;
 
         let post = self.get_by_id(&id).await?;
+
+        Ok(post)
+    }
+
+    pub async fn remove(&self, id: &Uuid, user_id: &Uuid) -> anyhow::Result<(), AppError> {
+        tracing::info!("remove post {}", id);
+
+        let _ = self.verify_post_author(id, user_id).await?;
+
+        self.repo.remove(&id).await?;
+
+        Ok(())
+    }
+
+    async fn verify_post_author(
+        &self,
+        id: &Uuid,
+        user_id: &Uuid,
+    ) -> anyhow::Result<Post, AppError> {
+        tracing::info!("verify author post {} for user {}", id, user_id);
+
+        let post = self.get_by_id(id).await?;
+
+        if post.author_id != *user_id {
+            return Err(AppError::Internal("you are not author".to_string()));
+        }
 
         Ok(post)
     }

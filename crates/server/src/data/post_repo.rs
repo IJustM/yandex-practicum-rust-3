@@ -91,7 +91,27 @@ impl PostRepository for SqlxPostRepository {
         match res {
             Ok(_) => Ok(()),
             Err(e) => {
-                tracing::error!("SQL udpate post error: {:?}", e);
+                tracing::error!("SQL update post error: {:?}", e);
+                Err(AppError::Db)
+            }
+        }
+    }
+
+    async fn remove(&self, id: &Uuid) -> anyhow::Result<(), AppError> {
+        let res = sqlx::query!(
+            r#"
+                DELETE FROM posts
+                WHERE id = $1
+            "#,
+            id
+        )
+        .execute(&self.pool)
+        .await;
+
+        match res {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                tracing::error!("SQL delete post error: {:?}", e);
                 Err(AppError::Db)
             }
         }

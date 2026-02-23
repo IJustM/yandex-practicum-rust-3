@@ -1,11 +1,7 @@
 use axum::{Json, Router, extract::State, routing::post};
+use serde::{Deserialize, Serialize};
 
-use crate::{
-    error::AppError,
-    infrastructure::jwt,
-    presentation::proto::blog::{AuthResponse, LoginRequest, RegisterRequest},
-    state::AppState,
-};
+use crate::{error::AppError, infrastructure::jwt, state::AppState};
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -38,4 +34,22 @@ async fn login(
         .map_err(|_| AppError::Internal("jwt error".to_string()))?;
 
     Ok(Json(AuthResponse { access_token }))
+}
+
+#[derive(Deserialize)]
+struct RegisterRequest {
+    email: String,
+    password: String,
+    username: String,
+}
+
+#[derive(Deserialize)]
+struct LoginRequest {
+    email: String,
+    password: String,
+}
+
+#[derive(Serialize)]
+struct AuthResponse {
+    access_token: String,
 }
