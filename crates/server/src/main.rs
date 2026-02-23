@@ -1,3 +1,4 @@
+mod application;
 mod data;
 mod domain;
 mod error;
@@ -5,10 +6,15 @@ mod infrastructure;
 mod presentation;
 mod state;
 
+use std::sync::Arc;
+
 use axum::{Router, serve};
 use tokio::net::TcpListener;
 
-use crate::{presentation::routes, state::AppState};
+use crate::{
+    application::user_service::UserService, data::user_repo::SqxlUserRepository,
+    presentation::http::user_router, state::AppState,
+};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -29,10 +35,15 @@ async fn main() -> anyhow::Result<()> {
     let listener = TcpListener::bind(addr).await.expect("bind listener error");
 
     let app = Router::<AppState>::new()
-        .merge(routes::users::router())
+        .merge(user_router::router())
         .layer(infrastructure::cors::cors(&config.cors_origin));
 
-    let state = AppState { pool, config };
+    let config = Arc::new(config);
+    let user_service = Arc::new(UserService::new(SqxlUserRepository::new(pool)));
+    let state = AppState {
+        config,
+        user_service,
+    };
     let app = app.with_state(state);
 
     serve(listener, app).await.expect("serve error");
