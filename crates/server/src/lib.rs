@@ -8,8 +8,7 @@ pub mod db {
     use crate::infrastructure::{self, config::Config};
 
     pub fn create_config() -> Config {
-        let config = infrastructure::config::Config::from_env().expect("invalid config");
-        config
+        infrastructure::config::Config::from_env().expect("invalid config")
     }
 
     pub async fn create_db(config: &Config) -> Pool<Postgres> {

@@ -13,3 +13,7 @@
 Включение pre-commit `pre-commit install`
 
 Локальный запуск `pre-commit run --verbose --all-files`
+
+## GitHub
+
+Для корректной сборки sqlx в github необходимо выполнить `cargo sqlx prepare` из `crates/server`
