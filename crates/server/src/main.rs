@@ -20,13 +20,13 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = create_db(&config).await;
 
-    let addr = format!("{}:{}", config.host, config.port);
+    let addr = format!("{}:{}", config.host, config.port_http);
     tracing::info!("starting server on {}", addr);
 
     let listener = TcpListener::bind(addr).await.expect("bind listener error");
 
     let app = Router::<AppState>::new()
-        .merge(routes::router())
+        .merge(routes::users::router())
         .layer(infrastructure::cors::cors(&config.cors_origin));
 
     let state = AppState { pool, config };

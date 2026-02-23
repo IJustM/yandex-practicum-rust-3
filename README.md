@@ -17,3 +17,7 @@
 ## GitHub
 
 Для корректной сборки sqlx в github необходимо выполнить `cargo sqlx prepare` из `crates/server`
+
+## Запуск сервера
+
+Запуск командой `cargo run --bin server`

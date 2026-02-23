@@ -1,61 +1,17 @@
-use axum::{
-    Json, Router,
-    extract::State,
-    routing::{get, post},
-};
-use serde::{Deserialize, Serialize};
+use axum::{Json, Router, extract::State, routing::post};
 use server::{error::AppError, state::AppState};
 use tracing::error;
-use uuid::Uuid;
 
 use crate::{
     data::users_repo,
-    infrastructure::security::{self, AuthUser},
+    infrastructure::security::{self},
+    presentation::proto,
 };
-
-#[derive(Deserialize)]
-struct RegisterDto {
-    email: String,
-    username: String,
-    password: String,
-}
-
-#[derive(Deserialize)]
-struct LoginDto {
-    email: String,
-    password: String,
-}
-
-#[derive(Serialize)]
-struct HealthResponse {
-    status: String,
-}
-
-#[derive(Serialize)]
-struct RegisterResponse {
-    id: Uuid,
-}
-
-#[derive(Serialize)]
-struct LoginResponse {
-    access_token: String,
-}
-
-#[derive(Serialize)]
-struct ProfileResponse {
-    email: String,
-}
-
-async fn health() -> Json<HealthResponse> {
-    Json(HealthResponse {
-        status: "ok".to_string(),
-    })
-}
 
 async fn register(
     State(state): State<AppState>,
-    Json(payload): Json<RegisterDto>,
-) -> anyhow::Result<Json<RegisterResponse>, AppError> {
+    Json(payload): Json<proto::blog::RegisterRequest>,
+) -> anyhow::Result<(), AppError> {
     let email = payload.email.trim().to_lowercase();
     let username = payload.username.trim().to_string();
     let password = payload.password;
@@ -74,7 +30,7 @@ async fn register(
     let res = users_repo::create_user(&state, &user_id, &email, &username, &password_hash).await;
 
     match res {
-        Ok(_) => Ok(Json(RegisterResponse { id: user_id })),
+        Ok(_) => Ok(()),
         Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
             Err(AppError::Conflict("email already exist".to_string()))
         }
@@ -87,8 +43,8 @@ async fn register(
 
 async fn login(
     State(state): State<AppState>,
-    Json(payload): Json<LoginDto>,
-) -> anyhow::Result<Json<LoginResponse>, AppError> {
+    Json(payload): Json<proto::blog::LoginRequest>,
+) -> anyhow::Result<Json<proto::blog::AuthResponse>, AppError> {
     let email = payload.email.trim().to_lowercase();
     let password = payload.password;
 
@@ -112,19 +68,11 @@ async fn login(
     let access_token = security::generate_jwt(&state.config.jwt_secret, &user.id, &user.email)
         .map_err(|_| AppError::Internal("jwt error".to_string()))?;
 
-    Ok(Json(LoginResponse { access_token }))
-}
-
-async fn profile(AuthUser(claims): AuthUser) -> anyhow::Result<Json<ProfileResponse>, AppError> {
-    Ok(Json(ProfileResponse {
-        email: claims.email,
-    }))
+    Ok(Json(proto::blog::AuthResponse { access_token }))
 }
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/health", get(health))
         .route("/register", post(register))
         .route("/login", post(login))
-        .route("/profile", get(profile))
 }

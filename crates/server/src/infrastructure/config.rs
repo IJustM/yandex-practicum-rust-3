@@ -4,7 +4,8 @@ use serde::Deserialize;
 pub struct Config {
     pub database_url: String,
     pub host: String,
-    pub port: u16,
+    pub port_http: u16,
+    pub port_grpc: u16,
     pub jwt_secret: String,
     pub cors_origin: String,
 }
@@ -14,17 +15,21 @@ impl Config {
         dotenvy::dotenv().ok();
 
         let database_url = std::env::var("DATABASE_URL")?;
-        let host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".into());
-        let port = std::env::var("PORT")
-            .unwrap_or_else(|_| "8080".into())
+        let host = std::env::var("HOST").unwrap_or("127.0.0.1".into());
+        let port_http = std::env::var("PORT_HTTP")
+            .unwrap_or("8080".into())
+            .parse()?;
+        let port_grpc = std::env::var("PORT_GRPC")
+            .unwrap_or("8080".into())
             .parse()?;
         let jwt_secret = std::env::var("JWT_SECRET")?;
-        let cors_origin = std::env::var("CORS_ORIGIN").unwrap_or_else(|_| "*".into());
+        let cors_origin = std::env::var("CORS_ORIGIN").unwrap_or("*".into());
 
         Ok(Self {
             database_url,
             host,
-            port,
+            port_http,
+            port_grpc,
             jwt_secret,
             cors_origin,
         })
