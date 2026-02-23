@@ -1,12 +1,16 @@
 use uuid::Uuid;
 
-use crate::{domain::post::Post, error::AppError};
+use crate::{
+    domain::post::{Post, PostList},
+    error::AppError,
+};
 
 pub trait PostRepository {
     async fn create(&self, post: Post) -> anyhow::Result<(), AppError>;
     async fn get_by_id(&self, id: &Uuid) -> anyhow::Result<Post, AppError>;
     async fn update(&self, post: Post) -> anyhow::Result<(), AppError>;
     async fn remove(&self, id: &Uuid) -> anyhow::Result<(), AppError>;
+    async fn list(&self, limit: i64, offset: i64) -> anyhow::Result<PostList, AppError>;
 }
 
 pub struct PostService<R: PostRepository> {
@@ -84,6 +88,21 @@ impl<R: PostRepository> PostService<R> {
         self.repo.remove(&id).await?;
 
         Ok(())
+    }
+
+    pub async fn list(
+        &self,
+        limit: Option<i64>,
+        offset: Option<i64>,
+    ) -> anyhow::Result<PostList, AppError> {
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
+
+        tracing::info!("list limit {} and offset {}", limit, offset);
+
+        let post_list = self.repo.list(limit, offset).await?;
+
+        Ok(post_list)
     }
 
     async fn verify_post_author(

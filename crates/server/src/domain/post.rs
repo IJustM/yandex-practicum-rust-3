@@ -9,3 +9,11 @@ pub struct Post {
     pub content: String,
     pub created_at: Option<OffsetDateTime>,
 }
+
+#[derive(Debug)]
+pub struct PostList {
+    pub posts: Vec<Post>,
+    pub total: i64,
+    pub limit: i64,
+    pub offset: i64,
+}

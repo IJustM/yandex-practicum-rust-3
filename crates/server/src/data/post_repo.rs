@@ -1,7 +1,11 @@
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::{application::post_service::PostRepository, domain::post::Post, error::AppError};
+use crate::{
+    application::post_service::PostRepository,
+    domain::post::{Post, PostList},
+    error::AppError,
+};
 
 pub struct SqlxPostRepository {
     pool: PgPool,
@@ -112,6 +116,51 @@ impl PostRepository for SqlxPostRepository {
             Ok(_) => Ok(()),
             Err(e) => {
                 tracing::error!("SQL delete post error: {:?}", e);
+                Err(AppError::Db)
+            }
+        }
+    }
+
+    async fn list(&self, limit: i64, offset: i64) -> anyhow::Result<PostList, AppError> {
+        let posts = sqlx::query_as!(
+            Post,
+            r#"
+                SELECT id, author_id, title, content, created_at
+                FROM posts
+                ORDER BY created_at DESC
+                LIMIT $1
+                OFFSET $2
+            "#,
+            limit,
+            offset
+        )
+        .fetch_all(&self.pool)
+        .await;
+
+        let total = sqlx::query_scalar!(
+            r#"
+                SELECT COUNT(*) as "count!"
+                FROM posts
+            "#
+        )
+        .fetch_one(&self.pool)
+        .await;
+
+        match posts {
+            Ok(posts) => match total {
+                Ok(total) => Ok(PostList {
+                    posts,
+                    total,
+                    limit,
+                    offset,
+                }),
+                Err(e) => {
+                    tracing::error!("SQL list post error: {:?}", e);
+                    Err(AppError::Db)
+                }
+            },
+            Err(e) => {
+                tracing::error!("SQL list post error: {:?}", e);
                 Err(AppError::Db)
             }
         }

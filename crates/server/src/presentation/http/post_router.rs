@@ -1,13 +1,18 @@
 use axum::{
     Json, Router,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     routing::{delete, get, post, put},
 };
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::{domain::post::Post, error::AppError, infrastructure::jwt::AuthUser, state::AppState};
+use crate::{
+    domain::post::{Post, PostList},
+    error::AppError,
+    infrastructure::jwt::AuthUser,
+    state::AppState,
+};
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -15,6 +20,7 @@ pub fn router() -> Router<AppState> {
         .route("/api/posts/{id}", get(get_by_id))
         .route("/api/posts/{id}", put(update))
         .route("/api/posts/{id}", delete(remove))
+        .route("/api/posts", get(list))
 }
 
 async fn create(
@@ -63,6 +69,27 @@ async fn remove(
     Ok(())
 }
 
+async fn list(
+    Query(query): Query<ListQuery>,
+    State(state): State<AppState>,
+) -> anyhow::Result<Json<ListResponse>, AppError> {
+    let PostList {
+        posts,
+        total,
+        limit,
+        offset,
+    } = state.post_service.list(query.limit, query.offset).await?;
+
+    let posts = posts.into_iter().map(|post| post.into()).collect();
+
+    Ok(Json(ListResponse {
+        posts,
+        total,
+        limit,
+        offset,
+    }))
+}
+
 #[derive(Deserialize)]
 struct CreateRequest {
     title: String,
@@ -73,6 +100,20 @@ struct CreateRequest {
 struct UpdateRequest {
     title: String,
     content: String,
+}
+
+#[derive(Deserialize)]
+struct ListQuery {
+    limit: Option<i64>,
+    offset: Option<i64>,
+}
+
+#[derive(Serialize)]
+struct ListResponse {
+    posts: Vec<PostResponse>,
+    total: i64,
+    limit: i64,
+    offset: i64,
 }
 
 #[derive(Serialize)]
@@ -100,7 +141,7 @@ impl From<Post> for PostResponse {
             author_id,
             title,
             content,
-            created_at: created_at.unwrap_or_else(|| OffsetDateTime::now_utc()),
+            created_at: created_at.unwrap_or(OffsetDateTime::now_utc()),
         }
     }
 }
