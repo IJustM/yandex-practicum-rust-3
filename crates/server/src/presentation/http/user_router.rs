@@ -9,8 +9,8 @@ use crate::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/register", post(register))
-        .route("/login", post(login))
+        .route("/api/auth/register", post(register))
+        .route("/api/auth/login", post(login))
 }
 
 async fn register(

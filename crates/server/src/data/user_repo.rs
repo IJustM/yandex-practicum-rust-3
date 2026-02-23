@@ -19,7 +19,7 @@ impl UserRepository for SqlxUserRepository {
             email,
             username,
             password_hash,
-            created_at: _,
+            ..
         } = user;
 
         let res = sqlx::query!(

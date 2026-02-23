@@ -5,6 +5,7 @@ use crate::{domain::post::Post, error::AppError};
 pub trait PostRepository {
     async fn create(&self, post: Post) -> anyhow::Result<(), AppError>;
     async fn get_by_id(&self, id: &Uuid) -> anyhow::Result<Post, AppError>;
+    async fn update(&self, post: Post) -> anyhow::Result<(), AppError>;
 }
 
 pub struct PostService<R: PostRepository> {
@@ -45,9 +46,35 @@ impl<R: PostRepository> PostService<R> {
     }
 
     pub async fn get_by_id(&self, id: &Uuid) -> anyhow::Result<Post, AppError> {
-        tracing::info!("get post {}", id);
+        tracing::info!("get post by id {}", id);
 
         let post = self.repo.get_by_id(id).await?;
+
+        Ok(post)
+    }
+
+    pub async fn update(
+        &self,
+        id: &Uuid,
+        title: &str,
+        content: &str,
+        user_id: &Uuid,
+    ) -> anyhow::Result<Post, AppError> {
+        tracing::info!("update post {}", id);
+
+        let mut post = self.get_by_id(id).await?;
+
+        if post.author_id != *user_id {
+            return Err(AppError::Internal("you are not author".to_string()));
+        }
+
+        let id = post.id;
+        post.title = title.to_string();
+        post.content = content.to_string();
+
+        self.repo.update(post).await?;
+
+        let post = self.get_by_id(&id).await?;
 
         Ok(post)
     }

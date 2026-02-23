@@ -20,7 +20,7 @@ impl PostRepository for SqlxPostRepository {
             author_id,
             title,
             content,
-            created_at: _,
+            ..
         } = post;
 
         let res = sqlx::query!(
@@ -65,6 +65,34 @@ impl PostRepository for SqlxPostRepository {
             }
             Err(_) => {
                 return Err(AppError::Db);
+            }
+        }
+    }
+
+    async fn update(&self, post: Post) -> anyhow::Result<(), AppError> {
+        let Post {
+            id, title, content, ..
+        } = post;
+
+        let res = sqlx::query!(
+            r#"
+                UPDATE posts
+                SET title = $1,
+                    content = $2
+                WHERE id = $3
+            "#,
+            title,
+            content,
+            id
+        )
+        .execute(&self.pool)
+        .await;
+
+        match res {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                tracing::error!("SQL udpate post error: {:?}", e);
+                Err(AppError::Db)
             }
         }
     }

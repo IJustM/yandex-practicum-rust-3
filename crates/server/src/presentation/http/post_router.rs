@@ -1,8 +1,7 @@
 use axum::{
     Json, Router,
     extract::{Path, State},
-    routing::get,
-    routing::post,
+    routing::{get, post, put},
 };
 use uuid::Uuid;
 
@@ -19,8 +18,9 @@ use crate::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/post/create", post(create))
-        .route("/post/{id}", get(get_by_id))
+        .route("/api/post", post(create))
+        .route("/api/post/{id}", get(get_by_id))
+        .route("/api/post/{id}", put(update))
 }
 
 async fn create(
@@ -37,11 +37,24 @@ async fn create(
 }
 
 async fn get_by_id(
-    AuthUser(_): AuthUser,
     Path(id): Path<Uuid>,
     State(state): State<AppState>,
 ) -> anyhow::Result<Json<Post>, AppError> {
     let post = state.post_service.get_by_id(&id).await?;
+
+    Ok(Json(post.into()))
+}
+
+async fn update(
+    AuthUser(claims): AuthUser,
+    Path(id): Path<Uuid>,
+    State(state): State<AppState>,
+    Json(payload): Json<CreatePostRequest>,
+) -> anyhow::Result<Json<Post>, AppError> {
+    let post = state
+        .post_service
+        .update(&id, &payload.title, &payload.content, &claims.sub)
+        .await?;
 
     Ok(Json(post.into()))
 }
