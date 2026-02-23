@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package blog;
 
@@ -42,10 +43,11 @@ service PostService {
 }
 
 message Post {
-  string id        = 1;
-  string author_id = 2;
-  string title     = 3;
-  string content   = 4;
+  string                    id         = 1;
+  string                    author_id  = 2;
+  string                    title      = 3;
+  string                    content    = 4;
+  google.protobuf.Timestamp created_at = 5;
 }
 
 message CreatePostRequest {

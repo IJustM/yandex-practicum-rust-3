@@ -4,7 +4,8 @@
 
 ## Настройка проекта
 
-Установка protobuf `brew install protobuf`
+- Установка protobuf: `brew install protobuf`
+- Настройка env: создать в по пути `crates/server` файл `.env` на основе `.env.example` с корректными данными
 
 ## Настройка pre-commit
 
