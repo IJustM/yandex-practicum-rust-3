@@ -40,8 +40,7 @@ impl<R: UserRepository> UserService<R> {
             hash_password(password).map_err(|_| AppError::Internal("hash error".to_string()))?;
 
         let id = uuid::Uuid::now_v7();
-        let _ = self
-            .repo
+        self.repo
             .create(User {
                 id,
                 email: email.to_string(),

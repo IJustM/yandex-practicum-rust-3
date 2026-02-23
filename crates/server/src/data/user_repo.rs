@@ -62,12 +62,8 @@ impl UserRepository for SqlxUserRepository {
 
         match res {
             Ok(Some(user)) => Ok(user),
-            Ok(None) => {
-                return Err(AppError::Unauthorized("user not found".to_string()));
-            }
-            Err(_) => {
-                return Err(AppError::Db);
-            }
+            Ok(None) => Err(AppError::Unauthorized("user not found".to_string())),
+            Err(_) => Err(AppError::Db),
         }
     }
 }

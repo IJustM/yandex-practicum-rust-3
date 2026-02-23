@@ -38,7 +38,7 @@ impl<R: PostRepository> PostService<R> {
         self.repo
             .create(Post {
                 id,
-                author_id: author_id.clone(),
+                author_id: *author_id,
                 title: title.to_string(),
                 content: content.to_string(),
                 created_at: None,
@@ -85,7 +85,7 @@ impl<R: PostRepository> PostService<R> {
 
         let _ = self.verify_post_author(id, user_id).await?;
 
-        self.repo.remove(&id).await?;
+        self.repo.remove(id).await?;
 
         Ok(())
     }

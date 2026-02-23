@@ -17,7 +17,7 @@ pub fn generate_jwt(secret: &str, user_id: &Uuid) -> anyhow::Result<String> {
     let exp = now + Duration::hours(24);
 
     let claims = Claims {
-        sub: user_id.clone(),
+        sub: *user_id,
         exp: exp.unix_timestamp(),
     };
     let token = encode(
