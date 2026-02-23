@@ -49,6 +49,7 @@ pub fn generate_jwt(secret: &str, user_id: &Uuid, user_email: &str) -> anyhow::R
     Ok(token)
 }
 
+#[allow(dead_code)]
 pub fn verify_jwt(secret: &str, token: &str) -> anyhow::Result<Claims> {
     let data = decode::<Claims>(
         token,
@@ -59,6 +60,7 @@ pub fn verify_jwt(secret: &str, token: &str) -> anyhow::Result<Claims> {
     Ok(data.claims)
 }
 
+#[allow(dead_code)]
 pub struct AuthUser(pub Claims);
 
 impl FromRequestParts<AppState> for AuthUser {

@@ -1,24 +1,27 @@
 mod data;
 mod domain;
+mod error;
+mod infrastructure;
 mod presentation;
+mod state;
 
 use axum::{Router, serve};
-use server::{
-    db::{create_config, create_db},
-    infrastructure,
-    state::AppState,
-};
 use tokio::net::TcpListener;
 
-use crate::presentation::routes;
+use crate::{presentation::routes, state::AppState};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     infrastructure::tracing::init_tracing();
 
-    let config = create_config();
+    let config = infrastructure::config::Config::from_env().expect("invalid config");
 
-    let pool = create_db(&config).await;
+    let pool = infrastructure::db::create_db(&config.database_url).await;
+
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("migrations failed");
 
     let addr = format!("{}:{}", config.host, config.port_http);
     tracing::info!("starting server on {}", addr);

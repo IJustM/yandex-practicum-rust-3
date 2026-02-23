@@ -1,15 +1,25 @@
-use server::{
-    db::{create_config, create_db},
-    infrastructure,
-};
+use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    infrastructure::tracing::init_tracing();
+    dotenvy::dotenv().ok();
 
-    let config = create_config();
+    let database_url = std::env::var("DATABASE_URL")?;
 
-    let _ = create_db(&config).await;
+    let pool = PgPoolOptions::new()
+        .max_connections(1)
+        .connect(&database_url)
+        .await
+        .expect("connect to database error");
+
+    println!("running migration...");
+
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("migrations failed");
+
+    println!("migration completed!");
 
     Ok(())
 }

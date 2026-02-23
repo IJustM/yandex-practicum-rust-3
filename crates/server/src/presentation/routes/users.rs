@@ -1,11 +1,12 @@
 use axum::{Json, Router, extract::State, routing::post};
-use server::{error::AppError, state::AppState};
 use tracing::error;
 
 use crate::{
     data::users_repo,
+    error::AppError,
     infrastructure::security::{self},
     presentation::proto,
+    state::AppState,
 };
 
 async fn register(

@@ -1,6 +1,7 @@
-use server::state::AppState;
 use time::OffsetDateTime;
 use uuid::Uuid;
+
+use crate::state::AppState;
 
 #[derive(Debug)]
 pub struct UserRow {
