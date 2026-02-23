@@ -34,7 +34,7 @@ async fn login(
         .login(&payload.email, &payload.password)
         .await?;
 
-    let access_token = jwt::generate_jwt(&state.config.jwt_secret, &user.id, &user.email)
+    let access_token = jwt::generate_jwt(&state.config.jwt_secret, &user.id)
         .map_err(|_| AppError::Internal("jwt error".to_string()))?;
 
     Ok(Json(AuthResponse { access_token }))

@@ -2,10 +2,10 @@ use time::OffsetDateTime;
 use uuid::Uuid;
 
 #[derive(Debug)]
-pub struct User {
+pub struct Post {
     pub id: Uuid,
-    pub email: String,
-    pub password_hash: String,
-    pub username: String,
+    pub author_id: Uuid,
+    pub title: String,
+    pub content: String,
     pub created_at: Option<OffsetDateTime>,
 }

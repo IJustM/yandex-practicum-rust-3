@@ -1,27 +1,26 @@
 use sqlx::PgPool;
 
-use crate::{
-    application::user_service::{NewUser, UserRepository},
-    domain::user::User,
-    error::AppError,
-};
+use crate::{application::user_service::UserRepository, domain::user::User, error::AppError};
 
-pub struct SqxlUserRepository {
+pub struct SqlxUserRepository {
     pool: PgPool,
 }
 
-impl SqxlUserRepository {
+impl SqlxUserRepository {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
 }
 
-impl UserRepository for SqxlUserRepository {
-    async fn create(&self, user: NewUser) -> anyhow::Result<(), AppError> {
-        let id = user.id;
-        let email = user.email;
-        let username = user.username;
-        let password_hash = user.password_hash;
+impl UserRepository for SqlxUserRepository {
+    async fn create(&self, user: User) -> anyhow::Result<(), AppError> {
+        let User {
+            id,
+            email,
+            username,
+            password_hash,
+            created_at: _,
+        } = user;
 
         let res = sqlx::query!(
             r#"
@@ -42,7 +41,7 @@ impl UserRepository for SqxlUserRepository {
                 Err(AppError::Conflict("email already exist".to_string()))
             }
             Err(e) => {
-                tracing::error!("SQL create_user error: {:?}", e);
+                tracing::error!("SQL create user error: {:?}", e);
                 Err(AppError::Db)
             }
         }

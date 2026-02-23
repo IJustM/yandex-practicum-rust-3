@@ -5,7 +5,6 @@ pub struct Config {
     pub database_url: String,
     pub host: String,
     pub port_http: u16,
-    #[allow(dead_code)]
     pub port_grpc: u16,
     pub jwt_secret: String,
     pub cors_origin: String,

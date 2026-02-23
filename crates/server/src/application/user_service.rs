@@ -2,20 +2,11 @@ use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
     password_hash::{SaltString, rand_core::OsRng},
 };
-use uuid::Uuid;
 
 use crate::{domain::user::User, error::AppError};
 
-#[derive(Debug)]
-pub struct NewUser {
-    pub id: Uuid,
-    pub email: String,
-    pub username: String,
-    pub password_hash: String,
-}
-
 pub trait UserRepository {
-    async fn create(&self, user: NewUser) -> anyhow::Result<(), AppError>;
+    async fn create(&self, user: User) -> anyhow::Result<(), AppError>;
     async fn find_by_email(&self, email: &str) -> anyhow::Result<User, AppError>;
 }
 
@@ -51,11 +42,12 @@ impl<R: UserRepository> UserService<R> {
         let id = uuid::Uuid::now_v7();
         let _ = self
             .repo
-            .create(NewUser {
+            .create(User {
                 id,
                 email: email.to_string(),
                 username: username.to_string(),
                 password_hash,
+                created_at: None,
             })
             .await?;
 
