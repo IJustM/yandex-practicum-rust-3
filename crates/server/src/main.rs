@@ -1,30 +1,27 @@
 mod data;
 mod domain;
-mod error;
-mod infrastructure;
 mod presentation;
-mod state;
 
 use axum::{Router, serve};
+use server::{
+    db::{create_config, create_db},
+    infrastructure,
+    state::AppState,
+};
 use tokio::net::TcpListener;
 
-use crate::{presentation::routes, state::AppState};
+use crate::presentation::routes;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenvy::dotenv().ok();
     infrastructure::tracing::init_tracing();
 
-    let config = infrastructure::config::Config::from_env().expect("invalid config");
+    let config = create_config();
+
+    let pool = create_db(&config).await;
 
     let addr = format!("{}:{}", config.host, config.port);
     tracing::info!("starting server on {}", addr);
-
-    let pool = infrastructure::db::create_db(&config.database_url).await;
-
-    infrastructure::migrate::run(&pool)
-        .await
-        .expect("migrations failed");
 
     let listener = TcpListener::bind(addr).await.expect("bind listener error");
 

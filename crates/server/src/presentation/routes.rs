@@ -4,19 +4,19 @@ use axum::{
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
+use server::{error::AppError, state::AppState};
 use tracing::error;
 use uuid::Uuid;
 
 use crate::{
     data::users_repo,
-    error::AppError,
     infrastructure::security::{self, AuthUser},
-    state::AppState,
 };
 
 #[derive(Deserialize)]
 struct RegisterDto {
     email: String,
+    username: String,
     password: String,
 }
 
@@ -57,6 +57,7 @@ async fn register(
     Json(payload): Json<RegisterDto>,
 ) -> anyhow::Result<Json<RegisterResponse>, AppError> {
     let email = payload.email.trim().to_lowercase();
+    let username = payload.username.trim().to_string();
     let password = payload.password;
     if email.is_empty() || password.len() < 6 {
         return Err(AppError::BadRequest(
@@ -70,7 +71,7 @@ async fn register(
     let password_hash = security::hash_password(&password)
         .map_err(|_| AppError::Internal("hash error".to_string()))?;
 
-    let res = users_repo::create_user(&state, &user_id, &email, &password_hash).await;
+    let res = users_repo::create_user(&state, &user_id, &email, &username, &password_hash).await;
 
     match res {
         Ok(_) => Ok(Json(RegisterResponse { id: user_id })),
