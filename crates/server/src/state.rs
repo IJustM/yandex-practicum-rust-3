@@ -9,7 +9,6 @@ use crate::{
 #[derive(Clone)]
 pub struct AppState {
     pub config: Arc<Config>,
-    // services
     pub user_service: Arc<UserService<SqlxUserRepository>>,
     pub post_service: Arc<PostService<SqlxPostRepository>>,
 }

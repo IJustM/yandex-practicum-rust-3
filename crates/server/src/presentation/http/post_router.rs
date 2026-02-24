@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::{
     domain::post::{Post, PostList},
     error::AppError,
-    infrastructure::jwt::AuthUser,
+    presentation::http::jwt::AuthUser,
     state::AppState,
 };
 
@@ -136,7 +136,7 @@ impl From<Post> for PostResponse {
             created_at,
         } = post;
 
-        PostResponse {
+        Self {
             id,
             author_id,
             title,

@@ -1,4 +1,5 @@
 pub mod error;
+pub mod jwt;
 pub mod post_router;
 pub mod user_router;
 

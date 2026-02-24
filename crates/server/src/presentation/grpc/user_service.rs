@@ -23,7 +23,10 @@ impl UserServiceImpl {
 
 #[tonic::async_trait]
 impl UserService for UserServiceImpl {
-    async fn register(&self, request: Request<RegisterRequest>) -> Result<Response<Empty>, Status> {
+    async fn register(
+        &self,
+        request: Request<RegisterRequest>,
+    ) -> anyhow::Result<Response<Empty>, Status> {
         let payload = request.into_inner();
 
         self.state
@@ -37,7 +40,7 @@ impl UserService for UserServiceImpl {
     async fn login(
         &self,
         request: Request<LoginRequest>,
-    ) -> Result<Response<AuthResponse>, Status> {
+    ) -> anyhow::Result<Response<AuthResponse>, Status> {
         let payload = request.into_inner();
 
         let user = self
