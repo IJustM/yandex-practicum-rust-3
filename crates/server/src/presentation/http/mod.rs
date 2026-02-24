@@ -4,6 +4,7 @@ pub mod post_router;
 pub mod user_router;
 
 use axum::{Router, serve};
+use serde::Serialize;
 use tokio::net::TcpListener;
 
 use crate::{
@@ -34,3 +35,6 @@ pub async fn run_http(state: AppState) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[derive(Serialize)]
+pub struct EmptyResponse {}

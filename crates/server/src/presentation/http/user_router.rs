@@ -1,7 +1,9 @@
 use axum::{Json, Router, extract::State, routing::post};
 use serde::{Deserialize, Serialize};
 
-use crate::{error::AppError, infrastructure::jwt, state::AppState};
+use crate::{
+    error::AppError, infrastructure::jwt, presentation::http::EmptyResponse, state::AppState,
+};
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -12,13 +14,13 @@ pub fn router() -> Router<AppState> {
 async fn register(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
-) -> anyhow::Result<(), AppError> {
+) -> anyhow::Result<Json<EmptyResponse>, AppError> {
     state
         .user_service
         .register(&payload.email, &payload.password, &payload.username)
         .await?;
 
-    Ok(())
+    Ok(Json(EmptyResponse {}))
 }
 
 async fn login(

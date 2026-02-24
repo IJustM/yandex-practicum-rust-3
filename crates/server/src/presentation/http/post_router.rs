@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::{
     domain::post::{Post, PostList},
     error::AppError,
-    presentation::http::jwt::AuthUser,
+    presentation::http::{EmptyResponse, jwt::AuthUser},
     state::AppState,
 };
 
@@ -63,10 +63,10 @@ async fn remove(
     AuthUser(claims): AuthUser,
     Path(id): Path<Uuid>,
     State(state): State<AppState>,
-) -> anyhow::Result<(), AppError> {
+) -> anyhow::Result<Json<EmptyResponse>, AppError> {
     state.post_service.remove(&id, &claims.sub).await?;
 
-    Ok(())
+    Ok(Json(EmptyResponse {}))
 }
 
 async fn list(

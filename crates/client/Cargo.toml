@@ -10,10 +10,12 @@ prost-types.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+thiserror.workspace = true
 time = { workspace = true, features = ["serde"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tonic.workspace = true
 tonic-prost.workspace = true
+uuid = { workspace = true, features = ["serde", "v7"] }
 
 [build-dependencies]
 anyhow.workspace = true
