@@ -11,7 +11,7 @@ use std::sync::Arc;
 use crate::{
     application::{post_service::PostService, user_service::UserService},
     data::{post_repo::SqlxPostRepository, user_repo::SqlxUserRepository},
-    presentation::http::run_http,
+    presentation::{grpc::run_grpc, http::run_http},
     state::AppState,
 };
 
@@ -41,6 +41,12 @@ async fn main() -> anyhow::Result<()> {
         res = run_http(state.clone()) => {
             if let Err(e) = res {
                 tracing::error!("http failed: {}", e);
+                return Err(e);
+            }
+        },
+        res = run_grpc(state.clone()) => {
+            if let Err(e) = res {
+                tracing::error!("grpc failed: {}", e);
                 return Err(e);
             }
         },

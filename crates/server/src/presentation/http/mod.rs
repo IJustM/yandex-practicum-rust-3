@@ -1,3 +1,7 @@
+pub mod error;
+pub mod post_router;
+pub mod user_router;
+
 use axum::{Router, serve};
 use tokio::net::TcpListener;
 
@@ -5,9 +9,6 @@ use crate::{
     infrastructure::{config::Config, cors::cors},
     state::AppState,
 };
-
-pub mod post_router;
-pub mod user_router;
 
 pub async fn run_http(state: AppState) -> anyhow::Result<()> {
     let Config {
