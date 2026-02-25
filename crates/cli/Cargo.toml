@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow.workspace = true
-clap = { workspace = true, features = ["derive"] }
 client = { path = "../client" }
-tokio.workspace = true
-uuid = { workspace = true, features = ["v7"] }
+anyhow = "1.0.102"
+clap = { version = "4.5.60", features = ["derive"] }
+tokio = "1.49.0"
+uuid = { version = "1.21.0", features = ["v7"] }
