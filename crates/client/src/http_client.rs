@@ -7,11 +7,15 @@ use uuid::Uuid;
 
 use crate::{BlogClient, EmptyResponse, Post, PostList, error::BlogClientError};
 
-#[derive(Default)]
 pub struct HttpClient {
     addr: String,
     token: Option<String>,
     client: Client,
+}
+
+#[derive(Deserialize)]
+struct ErrorMessage {
+    message: String,
 }
 
 impl HttpClient {
@@ -24,26 +28,36 @@ impl HttpClient {
     }
 
     fn url(&self, path: &str) -> String {
-        let res = format!("{}{}", self.addr, path);
-        println!("{}", res);
-        res
+        format!("{}{}", self.addr, path)
     }
 
     async fn send_req<Data>(&self, req: RequestBuilder) -> anyhow::Result<Data, BlogClientError>
     where
         Data: DeserializeOwned,
     {
-        let res = req.send().await.map_err(|e| BlogClientError::Internal(e))?;
+        let res = req
+            .send()
+            .await
+            .map_err(|e| BlogClientError::InternalHttp(e))?;
 
         if !res.status().is_success() {
-            let message = res.text().await.map_err(|e| BlogClientError::Internal(e))?;
-            return Err(BlogClientError::InvalidRequest(message));
+            let bytes = res
+                .bytes()
+                .await
+                .map_err(|e| BlogClientError::InternalHttp(e))?;
+
+            return Err(BlogClientError::InvalidRequest(
+                match serde_json::from_slice::<ErrorMessage>(&bytes) {
+                    Ok(e) => e.message,
+                    Err(_) => String::from_utf8_lossy(&bytes).to_string(),
+                },
+            ));
         }
 
         let data = res
             .json::<Data>()
             .await
-            .map_err(|e| BlogClientError::Internal(e))?;
+            .map_err(|e| BlogClientError::InternalHttp(e))?;
 
         Ok(data)
     }
@@ -51,8 +65,12 @@ impl HttpClient {
 
 #[async_trait]
 impl BlogClient for HttpClient {
+    fn set_token(&mut self, token: &str) {
+        self.token = Some(token.to_string());
+    }
+
     async fn register(
-        &self,
+        &mut self,
         username: &str,
         email: &str,
         password: &str,

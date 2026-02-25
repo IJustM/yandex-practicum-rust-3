@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow.workspace = true
+clap = { workspace = true, features = ["derive"] }
+client = { path = "../client" }
+tokio.workspace = true

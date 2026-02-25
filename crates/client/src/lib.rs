@@ -11,9 +11,11 @@ use crate::{error::BlogClientError, grpc_client::GrpcClient, http_client::HttpCl
 
 #[async_trait]
 trait BlogClient: Send + Sync {
+    // token
+    fn set_token(&mut self, token: &str) -> ();
     // user
     async fn register(
-        &self,
+        &mut self,
         username: &str,
         email: &str,
         password: &str,
@@ -80,17 +82,21 @@ pub struct BlogClientImpl {
 }
 
 impl BlogClientImpl {
-    pub fn new(transport: Transport) -> Self {
+    pub async fn new(transport: Transport) -> anyhow::Result<Self, BlogClientError> {
         let client: Box<dyn BlogClient> = match transport {
             Transport::Http(addr) => Box::new(HttpClient::new(addr)),
-            Transport::Grpc(addr) => Box::new(GrpcClient::new(addr)),
+            Transport::Grpc(addr) => Box::new(GrpcClient::new(addr).await?),
         };
 
-        Self { client }
+        Ok(Self { client })
+    }
+
+    pub fn set_token(&mut self, token: &str) {
+        self.client.set_token(token);
     }
 
     pub async fn register(
-        &self,
+        &mut self,
         username: &str,
         email: &str,
         password: &str,
