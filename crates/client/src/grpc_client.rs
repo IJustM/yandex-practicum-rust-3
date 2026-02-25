@@ -26,10 +26,10 @@ impl GrpcClient {
     pub async fn new(addr: String) -> anyhow::Result<Self, BlogClientError> {
         let user_service = UserServiceClient::connect(addr.clone())
             .await
-            .map_err(|e| BlogClientError::InternalRgpcTransport(e))?;
+            .map_err(BlogClientError::InternalRgpcTransport)?;
         let post_service = PostServiceClient::connect(addr.clone())
             .await
-            .map_err(|e| BlogClientError::InternalRgpcTransport(e))?;
+            .map_err(BlogClientError::InternalRgpcTransport)?;
 
         Ok(Self {
             token: None,
@@ -77,7 +77,7 @@ impl BlogClient for GrpcClient {
             .user_service
             .register(req)
             .await
-            .map_err(|e| BlogClientError::InternalRgpcStatus(e))?;
+            .map_err(BlogClientError::InternalRgpcStatus)?;
 
         Ok(())
     }
@@ -96,7 +96,7 @@ impl BlogClient for GrpcClient {
             .user_service
             .login(req)
             .await
-            .map_err(|e| BlogClientError::InternalRgpcStatus(e))?
+            .map_err(BlogClientError::InternalRgpcStatus)?
             .into_inner();
 
         Ok(res.into())
@@ -116,7 +116,7 @@ impl BlogClient for GrpcClient {
             .post_service
             .create_post(req)
             .await
-            .map_err(|e| BlogClientError::InternalRgpcStatus(e))?
+            .map_err(BlogClientError::InternalRgpcStatus)?
             .into_inner();
 
         Ok(to_post(res)?)
@@ -129,7 +129,7 @@ impl BlogClient for GrpcClient {
             .post_service
             .get_post(req)
             .await
-            .map_err(|e| BlogClientError::InternalRgpcStatus(e))?
+            .map_err(BlogClientError::InternalRgpcStatus)?
             .into_inner();
 
         Ok(to_post(res)?)
@@ -151,7 +151,7 @@ impl BlogClient for GrpcClient {
             .post_service
             .update_post(req)
             .await
-            .map_err(|e| BlogClientError::InternalRgpcStatus(e))?
+            .map_err(BlogClientError::InternalRgpcStatus)?
             .into_inner();
 
         Ok(to_post(res)?)
@@ -163,7 +163,7 @@ impl BlogClient for GrpcClient {
         self.post_service
             .delete_post(req)
             .await
-            .map_err(|e| BlogClientError::InternalRgpcStatus(e))?;
+            .map_err(BlogClientError::InternalRgpcStatus)?;
 
         Ok(())
     }
@@ -179,10 +179,10 @@ impl BlogClient for GrpcClient {
             .post_service
             .list_posts(req)
             .await
-            .map_err(|e| BlogClientError::InternalRgpcStatus(e))?
+            .map_err(BlogClientError::InternalRgpcStatus)?
             .into_inner();
 
-        let posts: Result<Vec<_>, _> = res.posts.into_iter().map(|post| to_post(post)).collect();
+        let posts: Result<Vec<_>, _> = res.posts.into_iter().map(to_post).collect();
 
         Ok(PostList {
             total: res.total,

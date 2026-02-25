@@ -1,10 +1,17 @@
 use gloo_net::http::Request;
-use leptos::{control_flow::Show, ev::SubmitEvent, prelude::*, reactive::spawn_local};
+use leptos::{
+    control_flow::Show,
+    ev::{MouseEvent, SubmitEvent},
+    prelude::*,
+    reactive::spawn_local,
+};
+use leptos_router::{NavigateOptions, hooks::use_navigate};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     api::{self},
-    components::notifications::{NotificationDesign, get_signal_notifications},
+    components::button::{Button, ButtonDesign},
+    state::notifications::{NotificationDesign, get_signal_notifications},
     utils::get_url,
 };
 
@@ -41,21 +48,33 @@ pub fn Login() -> impl IntoView {
     let (password, set_password) = signal("".to_string());
     let (username, set_username) = signal("".to_string());
 
+    let navigate = use_navigate();
+
     let on_submit = move |e: SubmitEvent| {
         e.prevent_default();
         match action.get() {
-            Some(Action::Login) => spawn_local(async move {
-                let req = api::add_json_data(
-                    Request::post(&get_url("/api/auth/login")),
-                    UserLogin {
-                        email: email.get(),
-                        password: password.get(),
-                    },
-                );
-                if let Ok(res) = api::send::<AuthResponse>(req).await {
-                    api::save_jwt_token(&res.access_token);
-                }
-            }),
+            Some(Action::Login) => {
+                let navigate = navigate.clone();
+                spawn_local(async move {
+                    let req = api::add_json_data(
+                        Request::post(&get_url("/api/auth/login")),
+                        UserLogin {
+                            email: email.get(),
+                            password: password.get(),
+                        },
+                    );
+                    if let Ok(res) = api::send::<AuthResponse>(req).await {
+                        api::save_jwt_token(&res.access_token);
+                        navigate(
+                            "/posts",
+                            NavigateOptions {
+                                replace: true,
+                                ..Default::default()
+                            },
+                        );
+                    }
+                });
+            }
             Some(Action::Register) => {
                 spawn_local(async move {
                     let req = api::add_json_data(
@@ -66,7 +85,7 @@ pub fn Login() -> impl IntoView {
                             username: username.get(),
                         },
                     );
-                    if let Ok(_) = api::send::<api::EmptyResponse>(req).await {
+                    if api::send::<api::EmptyResponse>(req).await.is_ok() {
                         let (_, set_notifications) = get_signal_notifications();
                         set_notifications.update(|state| {
                             state.add(NotificationDesign::Success, "register success");
@@ -84,8 +103,11 @@ pub fn Login() -> impl IntoView {
 
     view! {
         <div class="w-full h-screen flex flex-col justify-center items-center gap-8">
-            <h1 class="text-2xl">Login</h1>
-            <form class="flex flex-col gap-4" on:submit=on_submit>
+            <form
+                class="flex flex-col gap-4 border border-solid rounded-xl p-8 pt-5 border-gray-300"
+                on:submit=on_submit
+            >
+                <h1 class="text-2xl">Login</h1>
                 <div class="flex flex-col gap-1">
                     <label for="email">email</label>
                     <input
@@ -118,49 +140,45 @@ pub fn Login() -> impl IntoView {
                         />
                     </div>
                 </Show>
-                <div class="flex gap-2 w-full">
+                <div class="flex gap-3 w-full">
                     <Show when=move || { !is_registration.get() }>
-                        <button
-                            type="submit"
-                            class="flex-1 rounded-sm p-1 mt-4 bg-blue-500 text-white"
-                            on:click=move |_| {
+                        <Button
+                            design=ButtonDesign::Blue
+                            on_click=move |_| {
                                 set_action.set(Some(Action::Login));
                             }
                         >
                             Sign in
-                        </button>
-                        <button
-                            type="submit"
-                            class="flex-1 rounded-sm p-1 mt-4 bg-white text-gray-500 border border-solid border-gray-500"
-                            on:click=move |e| {
+                        </Button>
+                        <Button
+                            design=ButtonDesign::Gray
+                            on_click=move |e: MouseEvent| {
                                 e.prevent_default();
                                 set_is_registration.set(true);
                             }
                         >
                             Sign up
-                        </button>
+                        </Button>
                     </Show>
 
                     <Show when=move || { is_registration.get() }>
-                        <button
-                            type="submit"
-                            class="flex-1 rounded-sm p-1 mt-4 bg-white text-gray-500 border border-solid border-gray-500"
-                            on:click=move |e| {
+                        <Button
+                            design=ButtonDesign::Gray
+                            on_click=move |e: MouseEvent| {
                                 e.prevent_default();
                                 set_is_registration.set(false);
                             }
                         >
                             Back
-                        </button>
-                        <button
-                            type="submit"
-                            class="flex-1 rounded-sm p-1 mt-4 bg-green-500 text-white"
-                            on:click=move |_| {
+                        </Button>
+                        <Button
+                            design=ButtonDesign::Green
+                            on_click=move |_| {
                                 set_action.set(Some(Action::Register));
                             }
                         >
                             Sign up
-                        </button>
+                        </Button>
                     </Show>
                 </div>
             </form>

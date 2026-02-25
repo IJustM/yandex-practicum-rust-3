@@ -12,7 +12,8 @@ leptos = { version = "0.8.16", features = ["csr"] }
 leptos_router = "0.8.12"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-uuid = { version = "1.21.0", features = ["v4", "js"] }
+time = { version = "0.3.47", features = ["formatting", "parsing", "serde"] }
+uuid = { version = "1.21.0", features = ["serde", "v4", "js"] }
 
 [build-dependencies]
 dotenvy = "0.15.7"

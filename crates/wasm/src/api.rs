@@ -3,11 +3,11 @@ use gloo_storage::{LocalStorage, Storage};
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
-use crate::components::notifications::{NotificationDesign, get_signal_notifications};
+use crate::state::notifications::{NotificationDesign, get_signal_notifications};
 
 const STORAGE_KEY: &str = "blog_token";
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct EmptyResponse {}
 
 pub fn add_json_data<Data: Serialize>(req: RequestBuilder, data: Data) -> Request {
@@ -40,6 +40,10 @@ pub async fn send<Data: DeserializeOwned>(req: Request) -> anyhow::Result<Data, 
 
 pub fn save_jwt_token(token: &str) {
     let _ = LocalStorage::set(STORAGE_KEY, token);
+}
+
+pub fn is_jwt_token() -> bool {
+    LocalStorage::get::<String>(STORAGE_KEY).is_ok()
 }
 
 #[derive(Deserialize)]

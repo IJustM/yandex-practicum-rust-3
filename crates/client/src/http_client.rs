@@ -35,16 +35,10 @@ impl HttpClient {
     where
         Data: DeserializeOwned,
     {
-        let res = req
-            .send()
-            .await
-            .map_err(|e| BlogClientError::InternalHttp(e))?;
+        let res = req.send().await.map_err(BlogClientError::InternalHttp)?;
 
         if !res.status().is_success() {
-            let bytes = res
-                .bytes()
-                .await
-                .map_err(|e| BlogClientError::InternalHttp(e))?;
+            let bytes = res.bytes().await.map_err(BlogClientError::InternalHttp)?;
 
             return Err(BlogClientError::InvalidRequest(
                 match serde_json::from_slice::<ErrorMessage>(&bytes) {
@@ -57,7 +51,7 @@ impl HttpClient {
         let data = res
             .json::<Data>()
             .await
-            .map_err(|e| BlogClientError::InternalHttp(e))?;
+            .map_err(BlogClientError::InternalHttp)?;
 
         Ok(data)
     }
