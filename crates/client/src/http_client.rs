@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use reqwest::{Client, Error, RequestBuilder, Response};
+use reqwest::{Client, RequestBuilder};
 use serde::{Deserialize, de::DeserializeOwned};
 use tonic::async_trait;
 use uuid::Uuid;
 
-use crate::{BlogClient, EmptyResponse, Post, PostList, error::BlogClientError};
+use crate::{AuthResponse, BlogClient, EmptyResponse, Post, PostList, error::BlogClientError};
 
 pub struct HttpClient {
     addr: String,
@@ -89,27 +89,51 @@ impl BlogClient for HttpClient {
         Ok(())
     }
 
-    async fn login(&self, email: &str, password: &str) -> anyhow::Result<()> {
-        Ok(())
+    async fn login(
+        &mut self,
+        email: &str,
+        password: &str,
+    ) -> anyhow::Result<AuthResponse, BlogClientError> {
+        let req = self
+            .client
+            .post(self.url("/api/auth/login"))
+            .json(&HashMap::from([("email", email), ("password", password)]));
+
+        let res = self.send_req::<AuthResponse>(req).await?;
+
+        Ok(res)
     }
 
-    async fn create_post(&self, title: &str, content: &str) -> anyhow::Result<Post> {
-        Ok(Post::default())
+    async fn create_post(
+        &mut self,
+        title: &str,
+        content: &str,
+    ) -> anyhow::Result<Post, BlogClientError> {
+        todo!()
     }
 
-    async fn get_post(&self, id: &Uuid) -> anyhow::Result<Post> {
-        Ok(Post::default())
+    async fn get_post(&mut self, id: &Uuid) -> anyhow::Result<Post, BlogClientError> {
+        todo!()
     }
 
-    async fn update_post(&self, id: &Uuid, title: &str, content: &str) -> anyhow::Result<Post> {
-        Ok(Post::default())
+    async fn update_post(
+        &mut self,
+        id: &Uuid,
+        title: &str,
+        content: &str,
+    ) -> anyhow::Result<Post, BlogClientError> {
+        todo!()
     }
 
-    async fn delete_post(&self, id: &Uuid) -> anyhow::Result<()> {
-        Ok(())
+    async fn delete_post(&mut self, id: &Uuid) -> anyhow::Result<(), BlogClientError> {
+        todo!()
     }
 
-    async fn list_posts(&self, limit: i64, offset: i64) -> anyhow::Result<PostList> {
-        Ok(PostList::default())
+    async fn list_posts(
+        &mut self,
+        limit: Option<i64>,
+        offset: Option<i64>,
+    ) -> anyhow::Result<PostList, BlogClientError> {
+        todo!()
     }
 }

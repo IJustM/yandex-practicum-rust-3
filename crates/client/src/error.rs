@@ -1,5 +1,8 @@
 #[derive(Debug, thiserror::Error)]
 pub enum BlogClientError {
+    #[error("Internal: {0}")]
+    Internal(String),
+
     #[error("Internal http: {0}")]
     InternalHttp(reqwest::Error),
 

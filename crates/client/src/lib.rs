@@ -2,6 +2,8 @@ pub mod error;
 pub mod grpc_client;
 pub mod http_client;
 
+use std::fmt;
+
 use serde::Deserialize;
 use time::OffsetDateTime;
 use tonic::async_trait;
@@ -20,13 +22,30 @@ trait BlogClient: Send + Sync {
         email: &str,
         password: &str,
     ) -> anyhow::Result<(), BlogClientError>;
-    async fn login(&self, email: &str, password: &str) -> anyhow::Result<()>;
+    async fn login(
+        &mut self,
+        email: &str,
+        password: &str,
+    ) -> anyhow::Result<AuthResponse, BlogClientError>;
     // post
-    async fn create_post(&self, title: &str, content: &str) -> anyhow::Result<Post>;
-    async fn get_post(&self, id: &Uuid) -> anyhow::Result<Post>;
-    async fn update_post(&self, id: &Uuid, title: &str, content: &str) -> anyhow::Result<Post>;
-    async fn delete_post(&self, id: &Uuid) -> anyhow::Result<()>;
-    async fn list_posts(&self, limit: i64, offset: i64) -> anyhow::Result<PostList>;
+    async fn create_post(
+        &mut self,
+        title: &str,
+        content: &str,
+    ) -> anyhow::Result<Post, BlogClientError>;
+    async fn get_post(&mut self, id: &Uuid) -> anyhow::Result<Post, BlogClientError>;
+    async fn update_post(
+        &mut self,
+        id: &Uuid,
+        title: &str,
+        content: &str,
+    ) -> anyhow::Result<Post, BlogClientError>;
+    async fn delete_post(&mut self, id: &Uuid) -> anyhow::Result<(), BlogClientError>;
+    async fn list_posts(
+        &mut self,
+        limit: Option<i64>,
+        offset: Option<i64>,
+    ) -> anyhow::Result<PostList, BlogClientError>;
 }
 
 #[derive(Deserialize)]
@@ -38,38 +57,47 @@ pub struct Post {
     pub created_at: OffsetDateTime,
 }
 
-impl Default for Post {
-    fn default() -> Self {
-        Self {
-            id: Uuid::now_v7(),
-            author_id: Uuid::now_v7(),
-            title: "".to_string(),
-            content: "".to_string(),
-            created_at: OffsetDateTime::now_utc(),
-        }
+impl fmt::Display for Post {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "post(id={}, author_id={}, title={}, content={}, created_at={})",
+            self.id, self.author_id, self.title, self.content, self.created_at
+        )
     }
 }
 
 #[derive(Deserialize)]
 pub struct PostList {
-    pub posts: Vec<Post>,
     pub total: i64,
     pub limit: i64,
     pub offset: i64,
+    pub posts: Vec<Post>,
+}
+
+impl fmt::Display for PostList {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "post_list(total={}, limit={}, offset={},\n{})",
+            self.total,
+            self.limit,
+            self.offset,
+            self.posts
+                .iter()
+                .map(|post| post.to_string())
+                .collect::<Vec<String>>()
+                .join(",\n"),
+        )
+    }
 }
 
 #[derive(Deserialize)]
 pub struct EmptyResponse {}
 
-impl Default for PostList {
-    fn default() -> Self {
-        Self {
-            posts: vec![],
-            total: 0,
-            limit: 0,
-            offset: 0,
-        }
-    }
+#[derive(Deserialize)]
+pub struct AuthResponse {
+    pub access_token: String,
 }
 
 pub enum Transport {
@@ -104,27 +132,44 @@ impl BlogClientImpl {
         self.client.register(username, email, password).await
     }
 
-    pub async fn login(&mut self, email: &str, password: &str) -> anyhow::Result<()> {
+    pub async fn login(
+        &mut self,
+        email: &str,
+        password: &str,
+    ) -> anyhow::Result<AuthResponse, BlogClientError> {
         self.client.login(email, password).await
     }
 
-    pub async fn create_post(&self, title: &str, content: &str) -> anyhow::Result<Post> {
+    pub async fn create_post(
+        &mut self,
+        title: &str,
+        content: &str,
+    ) -> anyhow::Result<Post, BlogClientError> {
         self.client.create_post(title, content).await
     }
 
-    pub async fn get_post(&self, id: &Uuid) -> anyhow::Result<Post> {
+    pub async fn get_post(&mut self, id: &Uuid) -> anyhow::Result<Post, BlogClientError> {
         self.client.get_post(id).await
     }
 
-    pub async fn update_post(&self, id: &Uuid, title: &str, content: &str) -> anyhow::Result<Post> {
+    pub async fn update_post(
+        &mut self,
+        id: &Uuid,
+        title: &str,
+        content: &str,
+    ) -> anyhow::Result<Post, BlogClientError> {
         self.client.update_post(id, title, content).await
     }
 
-    pub async fn delete_post(&self, id: &Uuid) -> anyhow::Result<()> {
+    pub async fn delete_post(&mut self, id: &Uuid) -> anyhow::Result<(), BlogClientError> {
         self.client.delete_post(id).await
     }
 
-    pub async fn list_posts(&self, limit: i64, offset: i64) -> anyhow::Result<PostList> {
+    pub async fn list_posts(
+        &mut self,
+        limit: Option<i64>,
+        offset: Option<i64>,
+    ) -> anyhow::Result<PostList, BlogClientError> {
         self.client.list_posts(limit, offset).await
     }
 }

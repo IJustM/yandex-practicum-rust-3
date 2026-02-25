@@ -8,3 +8,4 @@ anyhow.workspace = true
 clap = { workspace = true, features = ["derive"] }
 client = { path = "../client" }
 tokio.workspace = true
+uuid = { workspace = true, features = ["v7"] }

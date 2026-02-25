@@ -1,5 +1,10 @@
+use std::fs;
+
 use clap::{Parser, Subcommand, ValueEnum};
 use client::BlogClientImpl;
+use uuid::Uuid;
+
+const BLOG_TOKEN_FILE: &str = ".blog_token";
 
 #[derive(Parser)]
 #[command(name = "blog", about = "CLI for blog")]
@@ -27,6 +32,51 @@ enum Commands {
         #[arg(long)]
         username: String,
     },
+    /// Login user
+    Login {
+        #[arg(long)]
+        email: String,
+
+        #[arg(long)]
+        password: String,
+    },
+    // Create post
+    CreatePost {
+        #[arg(long)]
+        title: String,
+
+        #[arg(long)]
+        content: String,
+    },
+    // Update post
+    UpdatePost {
+        #[arg(long)]
+        id: Uuid,
+
+        #[arg(long)]
+        title: String,
+
+        #[arg(long)]
+        content: String,
+    },
+    // Delete post
+    DeletePost {
+        #[arg(long)]
+        id: Uuid,
+    },
+    // Delete post
+    GetPost {
+        #[arg(long)]
+        id: Uuid,
+    },
+    // Get post list
+    GetPostList {
+        #[arg(long)]
+        limit: Option<i64>,
+
+        #[arg(long)]
+        offset: Option<i64>,
+    },
 }
 
 #[derive(ValueEnum, Clone)]
@@ -52,6 +102,11 @@ async fn main() -> anyhow::Result<()> {
 
     let mut client = BlogClientImpl::new(transport).await?;
 
+    let token = fs::read_to_string(BLOG_TOKEN_FILE).unwrap_or("".to_string());
+    if !token.is_empty() {
+        client.set_token(&token);
+    }
+
     match command {
         Commands::Register {
             email,
@@ -59,6 +114,27 @@ async fn main() -> anyhow::Result<()> {
             username,
         } => {
             client.register(&username, &email, &password).await?;
+        }
+        Commands::Login { email, password } => {
+            let res = client.login(&email, &password).await?;
+            fs::write(BLOG_TOKEN_FILE, res.access_token)?;
+        }
+        Commands::CreatePost { title, content } => {
+            client.create_post(&title, &content).await?;
+        }
+        Commands::UpdatePost { id, title, content } => {
+            client.update_post(&id, &title, &content).await?;
+        }
+        Commands::DeletePost { id } => {
+            client.delete_post(&id).await?;
+        }
+        Commands::GetPost { id } => {
+            let post = client.get_post(&id).await?;
+            println!("post {}", post);
+        }
+        Commands::GetPostList { limit, offset } => {
+            let post_list = client.list_posts(limit, offset).await?;
+            println!("post list {}", post_list);
         }
     };
 
