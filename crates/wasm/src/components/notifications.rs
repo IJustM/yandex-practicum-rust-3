@@ -1,49 +1,41 @@
 use std::{cell::OnceCell, time::Duration};
 
 use gloo_timers::future::sleep;
-use leptos::{prelude::*, task::spawn_local};
+use leptos::{control_flow::Show, prelude::*, task::spawn_local};
 use uuid::Uuid;
 
 #[component]
 pub fn Notifications() -> impl IntoView {
-    let (notifications, _) = get_notifications();
+    let (notifications, _) = get_signal_notifications();
 
     view! {
-        {move || {
-            notifications
-                .get()
-                .notifications
-                .first()
-                .map(|_| {
-                    view! {
-                        <div class="fixed top-8 left-0 w-full flex justify-center">
-                            {move || {
-                                notifications
-                                    .get()
-                                    .notifications
-                                    .iter()
-                                    .map(|n| {
-                                        let n = n.clone();
+        <Show when=move || { !notifications.get().notifications.is_empty() }>
+            <div class="fixed top-8 left-0 w-full flex justify-center">
+                {move || {
+                    notifications
+                        .get()
+                        .notifications
+                        .iter()
+                        .map(|n| {
+                            let n = n.clone();
 
-                                        view! {
-                                            <div class=move || {
-                                                format!(
-                                                    "{} px-8 py-4 rounded-xl text-white max-w-md",
-                                                    if n.design == NotificationDesign::Error {
-                                                        "bg-red-800"
-                                                    } else {
-                                                        "bg-green-800"
-                                                    },
-                                                )
-                                            }>{n.message}</div>
-                                        }
-                                    })
-                                    .collect::<Vec<_>>()
-                            }}
-                        </div>
-                    }
-                })
-        }}
+                            view! {
+                                <div class=move || {
+                                    format!(
+                                        "{} px-8 py-4 rounded-xl text-white max-w-md",
+                                        if n.design == NotificationDesign::Error {
+                                            "bg-red-800"
+                                        } else {
+                                            "bg-green-800"
+                                        },
+                                    )
+                                }>{n.message}</div>
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                }}
+            </div>
+        </Show>
     }
 }
 
@@ -90,7 +82,7 @@ impl NotificationsState {
 
         spawn_local(async move {
             sleep(Duration::from_secs(5)).await;
-            let (_, set_notifications) = get_notifications();
+            let (_, set_notifications) = get_signal_notifications();
             set_notifications.update(|state| {
                 state.notifications.retain(|n| n.id != id);
             });
@@ -107,6 +99,6 @@ thread_local! {
     static NOTIFICATIONS: OnceCell<NotificationsSignal> = OnceCell::new();
 }
 
-pub fn get_notifications() -> NotificationsSignal {
+pub fn get_signal_notifications() -> NotificationsSignal {
     NOTIFICATIONS.with(|cell| *cell.get_or_init(|| signal(NotificationsState::new()).clone()))
 }
