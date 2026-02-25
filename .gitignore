@@ -2,4 +2,5 @@
 .env
 .blog_token
 
-/target
+target
+dist

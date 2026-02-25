@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+gloo-net = "0.6.0"
+gloo-timers = { version = "0.3.0", features = ["futures"] }
+leptos = { version = "0.8.16", features = ["csr"] }
+serde = { version = "1.0.228", features = ["derive"] }
+uuid = { version = "1.21.0", features = ["v4", "js"] }
 
-[lib]
-crate-type = ["cdylib"]
+[build-dependencies]
+dotenvy = "0.15.7"

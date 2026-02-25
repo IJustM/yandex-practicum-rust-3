@@ -1,6 +1,6 @@
 fn main() -> anyhow::Result<()> {
-    // Пересобрать при изменении файла
     println!("cargo:rerun-if-changed=../../proto/blog.proto");
+    println!("cargo:rerun-if-changed=.env");
 
     tonic_prost_build::configure()
         .compile_well_known_types(true)

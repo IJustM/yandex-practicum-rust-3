@@ -1,6 +1,6 @@
-pub mod error;
-pub mod grpc_client;
-pub mod http_client;
+mod error;
+mod grpc_client;
+mod http_client;
 
 use std::fmt;
 
