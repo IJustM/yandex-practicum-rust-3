@@ -7,7 +7,7 @@ edition = "2024"
 anyhow.workspace = true
 prost.workspace = true
 prost-types.workspace = true
-reqwest = { workspace = true, features = ["json"] }
+reqwest = { workspace = true, features = ["json", "query"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true

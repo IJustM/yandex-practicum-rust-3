@@ -61,6 +61,12 @@ impl HttpClient {
 
         Ok(data)
     }
+
+    fn add_token_to_req(&self, req: RequestBuilder) -> RequestBuilder {
+        let authorization = format!("Bearer {}", self.token.clone().unwrap_or("".to_string()));
+
+        req.header("Authorization", authorization)
+    }
 }
 
 #[async_trait]
@@ -109,11 +115,23 @@ impl BlogClient for HttpClient {
         title: &str,
         content: &str,
     ) -> anyhow::Result<Post, BlogClientError> {
-        todo!()
+        let req = self.add_token_to_req(
+            self.client
+                .post(self.url("/api/posts"))
+                .json(&HashMap::from([("title", title), ("content", content)])),
+        );
+
+        let res = self.send_req::<Post>(req).await?;
+
+        Ok(res)
     }
 
     async fn get_post(&mut self, id: &Uuid) -> anyhow::Result<Post, BlogClientError> {
-        todo!()
+        let req = self.client.get(self.url(&format!("/api/posts/{}", id)));
+
+        let res = self.send_req::<Post>(req).await?;
+
+        Ok(res)
     }
 
     async fn update_post(
@@ -122,11 +140,24 @@ impl BlogClient for HttpClient {
         title: &str,
         content: &str,
     ) -> anyhow::Result<Post, BlogClientError> {
-        todo!()
+        let req = self.add_token_to_req(
+            self.client
+                .put(self.url(&format!("/api/posts/{}", id)))
+                .json(&HashMap::from([("title", title), ("content", content)])),
+        );
+
+        let res = self.send_req::<Post>(req).await?;
+
+        Ok(res)
     }
 
     async fn delete_post(&mut self, id: &Uuid) -> anyhow::Result<(), BlogClientError> {
-        todo!()
+        let req =
+            self.add_token_to_req(self.client.delete(self.url(&format!("/api/posts/{}", id))));
+
+        self.send_req::<EmptyResponse>(req).await?;
+
+        Ok(())
     }
 
     async fn list_posts(
@@ -134,6 +165,18 @@ impl BlogClient for HttpClient {
         limit: Option<i64>,
         offset: Option<i64>,
     ) -> anyhow::Result<PostList, BlogClientError> {
-        todo!()
+        let mut query = Vec::new();
+        if let Some(limit) = limit {
+            query.push(("limit", limit));
+        }
+        if let Some(offset) = offset {
+            query.push(("offset", offset));
+        }
+
+        let req = self.client.get(self.url("/api/posts")).query(&query);
+
+        let res = self.send_req::<PostList>(req).await?;
+
+        Ok(res)
     }
 }

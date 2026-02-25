@@ -120,10 +120,12 @@ async fn main() -> anyhow::Result<()> {
             fs::write(BLOG_TOKEN_FILE, res.access_token)?;
         }
         Commands::CreatePost { title, content } => {
-            client.create_post(&title, &content).await?;
+            let post = client.create_post(&title, &content).await?;
+            println!("post {}", post);
         }
         Commands::UpdatePost { id, title, content } => {
-            client.update_post(&id, &title, &content).await?;
+            let post = client.update_post(&id, &title, &content).await?;
+            println!("post {}", post);
         }
         Commands::DeletePost { id } => {
             client.delete_post(&id).await?;
