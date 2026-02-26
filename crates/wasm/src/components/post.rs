@@ -31,7 +31,7 @@ pub fn Post() -> impl IntoView {
             Ok(id) => {
                 set_id.set(Some(id));
                 spawn_local(async move {
-                    let req = Request::get(&get_url(&format!("/api/posts/{}", id.to_string())))
+                    let req = Request::get(&get_url(&format!("/api/posts/{}", id)))
                         .build()
                         .unwrap();
 
@@ -100,9 +100,7 @@ pub fn Post() -> impl IntoView {
                                         let req = add_json_data(
                                             add_authorization(
                                                 Request::put(
-                                                    &get_url(
-                                                        &format!("/api/posts/{}", id.get().unwrap().to_string()),
-                                                    ),
+                                                    &get_url(&format!("/api/posts/{}", id.get().unwrap())),
                                                 ),
                                             ),
                                             UpdatePostRequest {
@@ -130,9 +128,7 @@ pub fn Post() -> impl IntoView {
                                     spawn_local(async move {
                                         let req = add_authorization(
                                                 Request::delete(
-                                                    &get_url(
-                                                        &format!("/api/posts/{}", id.get().unwrap().to_string()),
-                                                    ),
+                                                    &get_url(&format!("/api/posts/{}", id.get().unwrap())),
                                                 ),
                                             )
                                             .build()

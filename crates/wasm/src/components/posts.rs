@@ -93,7 +93,7 @@ pub fn Posts() -> impl IntoView {
                                                     class="cursor-pointer hover:bg-blue-200"
                                                     on:click=move |_| {
                                                         nav.to(
-                                                            format!("/posts/{}", p.id.to_string()),
+                                                            format!("/posts/{}", p.id),
                                                             NavigateOptions::default(),
                                                         );
                                                     }
