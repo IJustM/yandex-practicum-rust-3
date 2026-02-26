@@ -1,13 +1,11 @@
 use gloo_net::http::Request;
 use leptos::{control_flow::Show, prelude::*};
 use leptos_router::NavigateOptions;
-use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
-use uuid::Uuid;
 
 use crate::{
-    api::{self, clear_jwt_token, is_jwt_token},
+    api::{clear_jwt_token, get_url, is_jwt_token, send_request},
     components::button::{Button, ButtonDesign},
+    domain::PostListResponse,
     navigation::use_app_nav,
 };
 
@@ -16,8 +14,8 @@ pub fn Posts() -> impl IntoView {
     let nav: crate::navigation::AppNav = use_app_nav();
 
     let post_list = LocalResource::new(move || async move {
-        let req = Request::get(&api::get_url("/api/posts")).build().unwrap();
-        api::send::<PostList>(req).await.unwrap()
+        let req = Request::get(&get_url("/api/posts")).build().unwrap();
+        send_request::<PostListResponse>(req).await.unwrap()
     });
 
     view! {
@@ -91,7 +89,15 @@ pub fn Posts() -> impl IntoView {
                                         .into_iter()
                                         .map(|p| {
                                             view! {
-                                                <tr class="cursor-pointer hover:bg-blue-200">
+                                                <tr
+                                                    class="cursor-pointer hover:bg-blue-200"
+                                                    on:click=move |_| {
+                                                        nav.to(
+                                                            format!("/posts/{}", p.id.to_string()),
+                                                            NavigateOptions::default(),
+                                                        );
+                                                    }
+                                                >
                                                     {vec![
                                                         p.id.to_string(),
                                                         p.title,
@@ -115,22 +121,4 @@ pub fn Posts() -> impl IntoView {
             }}
         </div>
     }
-}
-
-#[derive(Deserialize, Clone, Serialize)]
-struct PostList {
-    pub total: i64,
-    pub limit: i64,
-    pub offset: i64,
-    pub posts: Vec<Post>,
-}
-
-#[derive(Deserialize, Clone, Serialize)]
-struct Post {
-    pub id: Uuid,
-    pub author_id: Uuid,
-    pub title: String,
-    pub content: String,
-    #[serde(with = "time::serde::rfc3339")]
-    pub created_at: OffsetDateTime,
 }

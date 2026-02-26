@@ -1,9 +1,12 @@
 use gloo_net::http::{Request, RequestBuilder};
-use gloo_storage::{LocalStorage, Storage};
+use gloo_storage::{LocalStorage, Storage, errors::StorageError};
 use leptos::prelude::*;
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Serialize, de::DeserializeOwned};
 
-use crate::state::notifications::{NotificationDesign, get_signal_notifications};
+use crate::{
+    domain::ServerError,
+    state::notifications::{NotificationDesign, get_signal_notifications},
+};
 
 const API_URL: &str = std::env!("API_URL");
 
@@ -13,16 +16,20 @@ pub fn get_url(url: &str) -> String {
 
 const STORAGE_KEY: &str = "blog_token";
 
-#[derive(Deserialize, Serialize)]
-pub struct EmptyResponse {}
-
 pub fn add_json_data<Data: Serialize>(req: RequestBuilder, data: Data) -> Request {
     req.header("Content-Type", "application/json")
         .json(&data)
         .unwrap()
 }
 
-pub async fn send<Data: DeserializeOwned>(req: Request) -> anyhow::Result<Data, ()> {
+pub fn add_authorization(req: RequestBuilder) -> RequestBuilder {
+    req.header(
+        "Authorization",
+        &format!("Bearer {}", get_jwt_token().unwrap_or("".to_string())),
+    )
+}
+
+pub async fn send_request<Data: DeserializeOwned>(req: Request) -> anyhow::Result<Data, ()> {
     let res = req.send().await.unwrap();
 
     if res.ok() {
@@ -52,11 +59,10 @@ pub fn clear_jwt_token() {
     LocalStorage::delete(STORAGE_KEY);
 }
 
-pub fn is_jwt_token() -> bool {
-    LocalStorage::get::<String>(STORAGE_KEY).is_ok()
+pub fn get_jwt_token() -> Result<String, StorageError> {
+    LocalStorage::get::<String>(STORAGE_KEY)
 }
 
-#[derive(Deserialize)]
-struct ServerError {
-    pub message: String,
+pub fn is_jwt_token() -> bool {
+    get_jwt_token().is_ok()
 }

@@ -33,9 +33,18 @@ pub fn App() -> impl IntoView {
                                 }
                             />
 
+                            <ProtectedRoute
+                                path=path!("/posts/:id")
+                                redirect_path=|| "/login"
+                                condition=|| { Some(is_jwt_token()) }
+                                view=|| {
+                                    view! { <Post /> }
+                                }
+                            />
+
                             <Route path=path!("/posts") view=Posts />
 
-                            <Route path=path!("") view=|| view! { <Redirect path="/login" /> } />
+                            <Route path=path!("") view=|| view! { <Redirect path="/posts" /> } />
                             <Route path=path!("/*any") view=not_found />
                         </Routes>
                         <Notifications />

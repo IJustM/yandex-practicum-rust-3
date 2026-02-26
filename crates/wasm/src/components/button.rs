@@ -4,6 +4,7 @@ pub enum ButtonDesign {
     Gray,
     Blue,
     Green,
+    Red,
 }
 
 #[component]
@@ -23,6 +24,7 @@ pub fn Button(
                         ButtonDesign::Gray => "bg-white text-gray-500 border-gray-500",
                         ButtonDesign::Blue => "bg-blue-500 text-white",
                         ButtonDesign::Green => "bg-green-500 text-white",
+                        ButtonDesign::Red => "bg-white text-red-500 border-red-500"
                     },
                     if is_flex_one { "flex-1" } else { "" },
                 )

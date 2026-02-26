@@ -6,11 +6,11 @@ use leptos::{
     reactive::spawn_local,
 };
 use leptos_router::NavigateOptions;
-use serde::{Deserialize, Serialize};
 
 use crate::{
-    api::{self},
+    api::{add_json_data, get_url, save_jwt_token, send_request},
     components::button::{Button, ButtonDesign},
+    domain::{AuthResponse, EmptyResponse, LoginRequest, RegisterRequest},
     navigation::use_app_nav,
     state::notifications::{NotificationDesign, get_signal_notifications},
 };
@@ -19,24 +19,6 @@ use crate::{
 enum Action {
     Login,
     Register,
-}
-
-#[derive(Serialize)]
-struct UserLogin {
-    email: String,
-    password: String,
-}
-
-#[derive(Serialize)]
-struct UserRegister {
-    email: String,
-    password: String,
-    username: String,
-}
-
-#[derive(Deserialize)]
-struct AuthResponse {
-    pub access_token: String,
 }
 
 #[component]
@@ -55,15 +37,16 @@ pub fn Login() -> impl IntoView {
         match action.get() {
             Some(Action::Login) => {
                 spawn_local(async move {
-                    let req = api::add_json_data(
-                        Request::post(&api::get_url("/api/auth/login")),
-                        UserLogin {
+                    let req = add_json_data(
+                        Request::post(&get_url("/api/auth/login")),
+                        LoginRequest {
                             email: email.get(),
                             password: password.get(),
                         },
                     );
-                    if let Ok(res) = api::send::<AuthResponse>(req).await {
-                        api::save_jwt_token(&res.access_token);
+
+                    if let Ok(res) = send_request::<AuthResponse>(req).await {
+                        save_jwt_token(&res.access_token);
                         nav.to(
                             "/posts",
                             NavigateOptions {
@@ -76,15 +59,15 @@ pub fn Login() -> impl IntoView {
             }
             Some(Action::Register) => {
                 spawn_local(async move {
-                    let req = api::add_json_data(
-                        Request::post(&api::get_url("/api/auth/register")),
-                        UserRegister {
+                    let req = add_json_data(
+                        Request::post(&get_url("/api/auth/register")),
+                        RegisterRequest {
                             email: email.get(),
                             password: password.get(),
                             username: username.get(),
                         },
                     );
-                    if api::send::<api::EmptyResponse>(req).await.is_ok() {
+                    if send_request::<EmptyResponse>(req).await.is_ok() {
                         let (_, set_notifications) = get_signal_notifications();
                         set_notifications.update(|state| {
                             state.add(NotificationDesign::Success, "register success");
