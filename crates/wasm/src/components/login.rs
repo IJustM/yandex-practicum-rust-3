@@ -5,14 +5,14 @@ use leptos::{
     prelude::*,
     reactive::spawn_local,
 };
-use leptos_router::{NavigateOptions, hooks::use_navigate};
+use leptos_router::NavigateOptions;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     api::{self},
     components::button::{Button, ButtonDesign},
+    navigation::use_app_nav,
     state::notifications::{NotificationDesign, get_signal_notifications},
-    utils::get_url,
 };
 
 #[derive(Clone, Debug)]
@@ -48,16 +48,15 @@ pub fn Login() -> impl IntoView {
     let (password, set_password) = signal("".to_string());
     let (username, set_username) = signal("".to_string());
 
-    let navigate = use_navigate();
+    let nav = use_app_nav();
 
     let on_submit = move |e: SubmitEvent| {
         e.prevent_default();
         match action.get() {
             Some(Action::Login) => {
-                let navigate = navigate.clone();
                 spawn_local(async move {
                     let req = api::add_json_data(
-                        Request::post(&get_url("/api/auth/login")),
+                        Request::post(&api::get_url("/api/auth/login")),
                         UserLogin {
                             email: email.get(),
                             password: password.get(),
@@ -65,7 +64,7 @@ pub fn Login() -> impl IntoView {
                     );
                     if let Ok(res) = api::send::<AuthResponse>(req).await {
                         api::save_jwt_token(&res.access_token);
-                        navigate(
+                        nav.to(
                             "/posts",
                             NavigateOptions {
                                 replace: true,
@@ -78,7 +77,7 @@ pub fn Login() -> impl IntoView {
             Some(Action::Register) => {
                 spawn_local(async move {
                     let req = api::add_json_data(
-                        Request::post(&get_url("/api/auth/register")),
+                        Request::post(&api::get_url("/api/auth/register")),
                         UserRegister {
                             email: email.get(),
                             password: password.get(),
@@ -107,7 +106,7 @@ pub fn Login() -> impl IntoView {
                 class="flex flex-col gap-4 border border-solid rounded-xl p-8 pt-5 border-gray-300"
                 on:submit=on_submit
             >
-                <h1 class="text-2xl">Login</h1>
+                <h1 class="text-3xl">Login</h1>
                 <div class="flex flex-col gap-1">
                     <label for="email">email</label>
                     <input
@@ -144,6 +143,7 @@ pub fn Login() -> impl IntoView {
                     <Show when=move || { !is_registration.get() }>
                         <Button
                             design=ButtonDesign::Blue
+                            is_flex_one=true
                             on_click=move |_| {
                                 set_action.set(Some(Action::Login));
                             }
@@ -152,6 +152,7 @@ pub fn Login() -> impl IntoView {
                         </Button>
                         <Button
                             design=ButtonDesign::Gray
+                            is_flex_one=true
                             on_click=move |e: MouseEvent| {
                                 e.prevent_default();
                                 set_is_registration.set(true);
@@ -164,6 +165,7 @@ pub fn Login() -> impl IntoView {
                     <Show when=move || { is_registration.get() }>
                         <Button
                             design=ButtonDesign::Gray
+                            is_flex_one=true
                             on_click=move |e: MouseEvent| {
                                 e.prevent_default();
                                 set_is_registration.set(false);
@@ -173,6 +175,7 @@ pub fn Login() -> impl IntoView {
                         </Button>
                         <Button
                             design=ButtonDesign::Green
+                            is_flex_one=true
                             on_click=move |_| {
                                 set_action.set(Some(Action::Register));
                             }

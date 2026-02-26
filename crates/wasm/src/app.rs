@@ -6,7 +6,8 @@ use leptos_router::{
 
 use crate::{
     api::is_jwt_token,
-    components::{login::Login, notifications::Notifications, posts::Posts},
+    components::{login::Login, notifications::Notifications, post::Post, posts::Posts},
+    navigation::use_init_app_nav,
 };
 
 #[component]
@@ -15,20 +16,32 @@ pub fn App() -> impl IntoView {
 
     view! {
         <Router>
-            <Routes fallback=not_found>
-                <Route path=path!("/login") view=Login />
+            {move || {
+                use_init_app_nav();
 
-                <ProtectedRoute
-                    path=path!("/posts")
-                    redirect_path=|| "/login"
-                    condition=|| { Some(is_jwt_token()) }
-                    view=Posts
-                />
+                view! {
+                    <main>
+                        <Routes fallback=not_found>
+                            <Route path=path!("/login") view=Login />
 
-                <Route path=path!("") view=|| view! { <Redirect path="/login" /> } />
-                <Route path=path!("/*any") view=not_found />
-            </Routes>
-            <Notifications />
+                            <ProtectedRoute
+                                path=path!("/posts/new")
+                                redirect_path=|| "/login"
+                                condition=|| { Some(is_jwt_token()) }
+                                view=|| {
+                                    view! { <Post /> }
+                                }
+                            />
+
+                            <Route path=path!("/posts") view=Posts />
+
+                            <Route path=path!("") view=|| view! { <Redirect path="/login" /> } />
+                            <Route path=path!("/*any") view=not_found />
+                        </Routes>
+                        <Notifications />
+                    </main>
+                }
+            }}
         </Router>
     }
 }

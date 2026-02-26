@@ -8,6 +8,7 @@ anyhow = "1.0.102"
 gloo-net = "0.6.0"
 gloo-storage = "0.3.0"
 gloo-timers = { version = "0.3.0", features = ["futures"] }
+gloo-utils = "0.2.0"
 leptos = { version = "0.8.16", features = ["csr"] }
 leptos_router = "0.8.12"
 serde = { version = "1.0.228", features = ["derive"] }

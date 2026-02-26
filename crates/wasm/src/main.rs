@@ -1,8 +1,8 @@
 mod api;
 mod app;
 mod components;
+mod navigation;
 mod state;
-mod utils;
 
 use leptos::prelude::*;
 

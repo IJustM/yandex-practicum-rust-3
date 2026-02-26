@@ -5,6 +5,12 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::state::notifications::{NotificationDesign, get_signal_notifications};
 
+const API_URL: &str = std::env!("API_URL");
+
+pub fn get_url(url: &str) -> String {
+    format!("{}{}", API_URL, url)
+}
+
 const STORAGE_KEY: &str = "blog_token";
 
 #[derive(Deserialize, Serialize)]
@@ -40,6 +46,10 @@ pub async fn send<Data: DeserializeOwned>(req: Request) -> anyhow::Result<Data, 
 
 pub fn save_jwt_token(token: &str) {
     let _ = LocalStorage::set(STORAGE_KEY, token);
+}
+
+pub fn clear_jwt_token() {
+    LocalStorage::delete(STORAGE_KEY);
 }
 
 pub fn is_jwt_token() -> bool {
