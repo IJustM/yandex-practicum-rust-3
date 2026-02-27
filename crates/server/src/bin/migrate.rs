@@ -2,7 +2,7 @@ use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenvy::dotenv().ok();
+    dotenvy::dotenv().expect(".env file in server");
 
     let database_url = std::env::var("DATABASE_URL")?;
 

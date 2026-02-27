@@ -115,7 +115,7 @@ impl<R: PostRepository> PostService<R> {
         let post = self.get_by_id(id).await?;
 
         if post.author_id != *user_id {
-            return Err(AppError::Internal("you are not author".to_string()));
+            return Err(AppError::Unauthorized("you are not author".to_string()));
         }
 
         Ok(post)

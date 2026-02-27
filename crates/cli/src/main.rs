@@ -114,25 +114,31 @@ async fn main() -> anyhow::Result<()> {
             username,
         } => {
             client.register(&username, &email, &password).await?;
+            println!(
+                "user with email={} and username={} created",
+                email, username
+            );
         }
         Commands::Login { email, password } => {
             let res = client.login(&email, &password).await?;
             fs::write(BLOG_TOKEN_FILE, res.access_token)?;
+            println!("token saved");
         }
         Commands::CreatePost { title, content } => {
             let post = client.create_post(&title, &content).await?;
-            println!("post {}", post);
+            println!("created post {}", post);
         }
         Commands::UpdatePost { id, title, content } => {
             let post = client.update_post(&id, &title, &content).await?;
-            println!("post {}", post);
+            println!("updated post {}", post);
         }
         Commands::DeletePost { id } => {
             client.delete_post(&id).await?;
+            println!("post {} deleted", id);
         }
         Commands::GetPost { id } => {
             let post = client.get_post(&id).await?;
-            println!("post {}", post);
+            println!("get post {}", post);
         }
         Commands::GetPostList { limit, offset } => {
             let post_list = client.list_posts(limit, offset).await?;

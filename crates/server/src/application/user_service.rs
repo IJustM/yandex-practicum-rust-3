@@ -28,9 +28,13 @@ impl<R: UserRepository> UserService<R> {
         let email = email.trim().to_lowercase();
         let username = username.trim().to_string();
 
-        if email.is_empty() || password.len() < 6 {
+        if email.is_empty() {
+            return Err(AppError::BadRequest("invalid email: empty".to_string()));
+        }
+
+        if password.len() < 6 {
             return Err(AppError::BadRequest(
-                "invalid email or password".to_string(),
+                "invalid password: length must be more 5".to_string(),
             ));
         }
 

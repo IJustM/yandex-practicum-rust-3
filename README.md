@@ -26,9 +26,22 @@
 
 Для просмотра доступных команд запустите `cargo run help`
 
+Примеры команд:
+
+```bash
+# http
+cargo run http http://127.0.0.1:8080 register --email="email" --password="password" --username="username"
+cargo run http http://127.0.0.1:8080 login --email="email" --password="password" # сохранение токена в файл
+# grpc
+cargo run grpc http://127.0.0.1:50051 get-post-list
+cargo run grpc http://127.0.0.1:50051 create-post --title="title" --content="content"
+```
+
 ## WASM
 
 Для запуска web `trunk serve --open --port=8081`
+
+Для редактирования/удаления постов необходимо нажать на пост в таблице
 
 ### Настройка
 

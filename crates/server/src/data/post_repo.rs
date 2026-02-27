@@ -64,7 +64,7 @@ impl PostRepository for SqlxPostRepository {
 
         match res {
             Ok(Some(user)) => Ok(user),
-            Ok(None) => Err(AppError::Unauthorized("post not found".to_string())),
+            Ok(None) => Err(AppError::BadRequest("post not found".to_string())),
             Err(_) => Err(AppError::Db),
         }
     }

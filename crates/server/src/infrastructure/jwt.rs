@@ -41,7 +41,7 @@ pub fn verify_jwt(secret: &str, header: &str) -> anyhow::Result<Claims, AppError
         &DecodingKey::from_secret(secret.as_bytes()),
         &Validation::default(),
     )
-    .map_err(|_| AppError::Internal("invalid jwt token".to_string()))?;
+    .map_err(|_| AppError::Unauthorized("invalid jwt token".to_string()))?;
 
     Ok(data.claims)
 }
